@@ -1,118 +1,136 @@
 import React, { useState, useEffect } from "react";
+import "./App.css";
+
+const BASE_URL = "https://online_polls-voting_system_in_go.railway.internal";
 
 function App() {
   const [polls, setPolls] = useState([]);
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState("");
-  const [error, setError] = useState("");
-  const [votedPolls, setVotedPolls] = useState({}); // track which poll user voted for
+  const [loading, setLoading] = useState(true);
 
-  const backendUrl = "http://localhost:8080"; // replace with your deployed backend
+  const [newQuestion, setNewQuestion] = useState("");
+  const [newOptions, setNewOptions] = useState(["", ""]);
 
+  // Fetch all polls from backend
   const fetchPolls = async () => {
     try {
-      const res = await fetch(`${backendUrl}/getPolls`);
+      const res = await fetch(`${BASE_URL}/getPolls`);
       const data = await res.json();
-      setPolls(data);
+      setPolls(data || []); // Ensure array
     } catch (err) {
-      console.error(err);
-      setError("Failed to fetch polls");
+      console.error("Error fetching polls:", err);
+      setPolls([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Vote for an option
+  const vote = async (pollId, option) => {
+    try {
+      await fetch(`${BASE_URL}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ poll_id: pollId, option }),
+      });
+      fetchPolls(); // refresh votes
+    } catch (err) {
+      console.error("Error voting:", err);
+    }
+  };
+
+  // Create a new poll
+  const createPoll = async (e) => {
+    e.preventDefault();
+    const filteredOptions = newOptions.filter((opt) => opt.trim() !== "");
+    if (!newQuestion || filteredOptions.length < 2) {
+      alert("Please enter a question and at least 2 options.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/createPoll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: newQuestion, options: filteredOptions }),
+      });
+      const createdPoll = await res.json();
+      setPolls([...polls, createdPoll]);
+      setNewQuestion("");
+      setNewOptions(["", ""]);
+    } catch (err) {
+      console.error("Error creating poll:", err);
+    }
+  };
+
+  // Handle option input change
+  const handleOptionChange = (index, value) => {
+    const updatedOptions = [...newOptions];
+    updatedOptions[index] = value;
+    setNewOptions(updatedOptions);
+  };
+
+  // Add more option input fields
+  const addOptionField = () => setNewOptions([...newOptions, ""]);
 
   useEffect(() => {
     fetchPolls();
   }, []);
 
-  const handleVote = async (pollId, option) => {
-    try {
-      await fetch(`${backendUrl}/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ poll_id: pollId, option }),
-      });
-      setVotedPolls({ ...votedPolls, [pollId]: option });
-      fetchPolls();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleCreatePoll = async (e) => {
-    e.preventDefault();
-    if (!question || !options) return;
-    const optsArray = options.split(",").map((o) => o.trim());
-
-    try {
-      await fetch(`${backendUrl}/createPoll`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, options: optsArray }),
-      });
-      setQuestion("");
-      setOptions("");
-      fetchPolls();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  if (loading) return <div className="loading">Loading polls...</div>;
 
   return (
-    <div className="container">
-      <h1 className="title">🗳 Online Polls Voting System</h1>
+    <div className="app">
+      <h1>🗳 Online Polls Voting System</h1>
 
-      <section className="create-poll">
+      {/* Create Poll Form */}
+      <form className="create-poll" onSubmit={createPoll}>
         <h2>Create a New Poll</h2>
-        <form onSubmit={handleCreatePoll}>
+        <input
+          type="text"
+          placeholder="Enter poll question"
+          value={newQuestion}
+          onChange={(e) => setNewQuestion(e.target.value)}
+          required
+        />
+        {newOptions.map((opt, idx) => (
           <input
+            key={`opt-${idx}`}
             type="text"
-            placeholder="Poll Question"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={`Option ${idx + 1}`}
+            value={opt}
+            onChange={(e) => handleOptionChange(idx, e.target.value)}
             required
           />
-          <input
-            type="text"
-            placeholder="Options (comma separated)"
-            value={options}
-            onChange={(e) => setOptions(e.target.value)}
-            required
-          />
-          <button type="submit">Create Poll</button>
-        </form>
-      </section>
+        ))}
+        <button type="button" onClick={addOptionField} className="add-option">
+          + Add Option
+        </button>
+        <button type="submit" className="create-btn">
+          Create Poll
+        </button>
+      </form>
 
-      <section className="available-polls">
-        <h2>Available Polls</h2>
-        {error && <p className="error">{error}</p>}
-        {polls.length === 0 ? (
-          <p>No polls available</p>
-        ) : (
-          polls.map((poll) => (
-            <div key={poll.id} className="poll-card">
-              <div className="poll-question">{poll.question}</div>
-              <ul>
-                {poll.options.map((opt) => (
-                  <li key={opt}>
-                    <button
-                      className={`option-button ${
-                        votedPolls[poll.id] === opt ? "voted" : ""
-                      }`}
-                      onClick={() => handleVote(poll.id, opt)}
-                      disabled={!!votedPolls[poll.id]}
-                    >
-                      {opt} - Votes: {poll.votes[opt] || 0}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <div className="total-votes">
-                Total Votes: {Object.values(poll.votes).reduce((a, b) => a + b, 0)}
-              </div>
+      {/* Poll List */}
+      {polls.length === 0 ? (
+        <p>No polls available.</p>
+      ) : (
+        polls.map((poll) => (
+          <div key={poll.id || Math.random()} className="poll-card">
+            <h2>{poll.question || "Untitled Poll"}</h2>
+            <div className="options">
+              {(poll.options || []).map((option) => (
+                <button
+                  key={option}
+                  onClick={() => vote(poll.id, option)}
+                  className="option-btn"
+                >
+                  {option} ({poll.votes?.[option] ?? 0})
+                </button>
+              ))}
             </div>
-          ))
-        )}
-      </section>
+          </div>
+        ))
+      )}
     </div>
   );
 }
