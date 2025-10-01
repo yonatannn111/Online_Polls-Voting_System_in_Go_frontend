@@ -1,107 +1,86 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f7f7f7;
-}
-
 .app {
-  max-width: 600px;
-  margin: auto;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 20px;
 }
 
-h1 {
+header {
   text-align: center;
-  color: #333;
+  margin-bottom: 20px;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+nav a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #444;
+}
+
+nav a.active-link {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
 }
 
 .poll-card {
-  background: white;
+  border: 1px solid #ddd;
   padding: 15px;
   margin-bottom: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 .options {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
 }
 
 .option-btn {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: white;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border: 1px solid #bbb;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .option-btn:hover {
-  background-color: #0056b3;
+  background: #ddd;
 }
 
-/* Create Poll Form */
+.delete-btn {
+  margin-top: 10px;
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #e60000;
+}
+
 .create-poll {
-  background: #fff;
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.create-poll h2 {
-  margin-top: 0;
-  color: #444;
+.option-field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.create-poll input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.create-poll .add-option {
-  background: #6c757d;
-  color: white;
+.remove-btn {
+  background: transparent;
   border: none;
-  padding: 8px 12px;
-  margin-right: 10px;
-  border-radius: 6px;
   cursor: pointer;
-}
-
-.create-poll .add-option:hover {
-  background: #5a6268;
-}
-
-.create-poll .create-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.create-poll .create-btn:hover {
-  background-color: #218838;
-}
-
-@media (max-width: 480px) {
-  .options {
-    flex-direction: column;
-  }
-
-  .create-poll .add-option,
-  .create-poll .create-btn {
-    width: 100%;
-    margin-bottom: 10px;
-  }
+  color: red;
 }
