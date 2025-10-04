@@ -2,82 +2,81 @@ import React, { useState } from "react";
 
 const BASE_URL = "https://online-polls-voting-system-in-go.onrender.com";
 
-function CreatePoll() {
+export default function CreatePoll() {
   const [newQuestion, setNewQuestion] = useState("");
-  const [newOptions, setNewOptions] = useState(["", ""]);
+  const [options, setOptions] = useState(["", ""]);
+  const [message, setMessage] = useState("");
 
   const handleOptionChange = (index, value) => {
-    const updatedOptions = [...newOptions];
-    updatedOptions[index] = value;
-    setNewOptions(updatedOptions);
+    const updated = [...options];
+    updated[index] = value;
+    setOptions(updated);
   };
 
-  const addOptionField = () => setNewOptions([...newOptions, ""]);
-
-  const removeOptionField = (index) => {
-    if (newOptions.length > 2) {
-      setNewOptions(newOptions.filter((_, idx) => idx !== index));
+  const addOption = () => setOptions([...options, ""]);
+  const removeOption = (index) => {
+    if (options.length > 2) {
+      const updated = options.filter((_, i) => i !== index);
+      setOptions(updated);
     }
   };
 
   const createPoll = async (e) => {
     e.preventDefault();
-    const filteredOptions = newOptions.filter((opt) => opt.trim() !== "");
-    if (!newQuestion || filteredOptions.length < 2) {
-      alert("Please enter a question and at least 2 options.");
+    const filteredOptions = options.map(opt => opt.trim()).filter(Boolean);
+
+    if (!newQuestion.trim() || filteredOptions.length < 2) {
+      setMessage("Question and at least 2 options required.");
       return;
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/createPoll`, {
+      const res = await fetch(`${BASE_URL}/polls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: newQuestion, options: filteredOptions }),
       });
 
       if (!res.ok) throw new Error("Failed to create poll");
-      alert("✅ Poll created successfully!");
+      const data = await res.json();
+      setMessage(`Poll created! ID: ${data.id}`);
       setNewQuestion("");
-      setNewOptions(["", ""]);
+      setOptions(["", ""]);
     } catch (err) {
-      alert("❌ Error creating poll: " + err.message);
+      console.error(err);
+      setMessage("❌ Error creating poll");
     }
   };
 
   return (
-    <form className="create-poll" onSubmit={createPoll}>
+    <div className="create-poll">
       <h2>Create a New Poll</h2>
-      <input
-        type="text"
-        placeholder="Enter poll question"
-        value={newQuestion}
-        onChange={(e) => setNewQuestion(e.target.value)}
-        required
-      />
-      {newOptions.map((opt, idx) => (
-        <div key={idx} className="option-field">
-          <input
-            type="text"
-            placeholder={`Option ${idx + 1}`}
-            value={opt}
-            onChange={(e) => handleOptionChange(idx, e.target.value)}
-            required
-          />
-          {newOptions.length > 2 && (
-            <button type="button" onClick={() => removeOptionField(idx)} className="remove-btn">
-              ❌
-            </button>
-          )}
-        </div>
-      ))}
-      <button type="button" onClick={addOptionField} className="add-option">
-        ➕ Add Option
-      </button>
-      <button type="submit" className="create-btn">
-        ✅ Create Poll
-      </button>
-    </form>
+      <form onSubmit={createPoll}>
+        <input
+          type="text"
+          placeholder="Enter your question"
+          value={newQuestion}
+          onChange={(e) => setNewQuestion(e.target.value)}
+          required
+        />
+        {options.map((opt, i) => (
+          <div key={i} className="option-input">
+            <input
+              type="text"
+              placeholder={`Option ${i + 1}`}
+              value={opt}
+              onChange={(e) => handleOptionChange(i, e.target.value)}
+              required
+            />
+            {options.length > 2 && (
+              <button type="button" onClick={() => removeOption(i)}>Remove</button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={addOption}>Add Option</button>
+        <button type="submit">Create Poll</button>
+      </form>
+      {message && <p>{message}</p>}
+    </div>
   );
 }
-
-export default CreatePoll;

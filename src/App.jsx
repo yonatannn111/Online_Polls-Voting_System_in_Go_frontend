@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import PollList from "./components/PollList";
 import CreatePoll from "./components/CreatePoll";
 import "./App.css";
@@ -11,12 +11,8 @@ function App() {
         <header>
           <h1>🗳 Online Polls Voting System</h1>
           <nav>
-            <NavLink to="/" end className={({ isActive }) => (isActive ? "active-link" : "")}>
-              Polls
-            </NavLink>
-            <NavLink to="/create" className={({ isActive }) => (isActive ? "active-link" : "")}>
-              Create Poll
-            </NavLink>
+            <Link to="/">Polls</Link>
+            <Link to="/create">Create Poll</Link>
           </nav>
         </header>
 
@@ -26,6 +22,10 @@ function App() {
             <Route path="/create" element={<CreatePoll />} />
           </Routes>
         </main>
+
+        <footer>
+          <p>© 2025 Online Polls Voting System</p>
+        </footer>
       </div>
     </Router>
   );
